@@ -1,0 +1,23 @@
+REM ============================================
+REM WINDOWS - CONFIGURACIÓN DHCP
+REM ============================================
+
+REM 1. Configurar DHCP
+netsh interface ip set address "eth0" dhcp
+netsh interface ip set dns "eth0" dhcp
+
+REM 2. Renovar IP (debe obtener del R2-DHCP)
+ipconfig /release
+ipconfig /renew
+
+REM 3. Verificar IP obtenida
+ipconfig /all
+REM Debe mostrar:
+REM   IP: 20.24.116.x (entre .5 y .253)
+REM   Gateway: 20.24.116.1
+REM   DHCP Server: 20.24.116.4
+
+REM 4. Probar conectividad
+ping 20.24.116.1
+ping 20.24.116.4
+ping 8.8.8.8
