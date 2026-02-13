@@ -48,7 +48,7 @@ Agotar el pool de direcciones IP del servidor DHCP legítimo mediante la generac
 
 ### Tabla de Direccionamiento IP
 
-<img width="1642" height="445" alt="Tabla de Direccionamiento" src="https://github.com/user-attachments/assets/4c569c4b-4c7d-444a-9957-f2ca19b1300a" />
+
 
 | Dispositivo | Función | IP | VLAN |
 |-------------|---------|-----|------|
@@ -67,7 +67,7 @@ Agotar el pool de direcciones IP del servidor DHCP legítimo mediante la generac
 
 ### Configuración del Script
 
-<img width="1067" height="680" alt="Parámetros del Script" src="https://github.com/user-attachments/assets/48d6826e-21a2-4aec-b1a5-8b6bebb792ea" />
+
 
 | Parámetro | Valor |
 |-----------|-------|
@@ -78,7 +78,7 @@ Agotar el pool de direcciones IP del servidor DHCP legítimo mediante la generac
 
 ### Pool DHCP Legítimo (Router-2)
 
-<img width="944" height="701" alt="Pool DHCP" src="https://github.com/user-attachments/assets/4fe52908-45f9-4c21-bbb0-2f7ae1a1617b" />
+
 
 ```cisco
 ip dhcp pool POOL_LEGITIMO_20241165
@@ -145,7 +145,6 @@ sudo apt install tcpdump wireshark -y  # Opcional para debugging
 
 ### Requisitos de Hardware/Red
 
-<img width="1062" height="546" alt="Requisitos Hardware" src="https://github.com/user-attachments/assets/ebaff53a-39da-4e78-9d20-b39f7c30cfd4" />
 
 | Componente | Requerimiento |
 |------------|---------------|
