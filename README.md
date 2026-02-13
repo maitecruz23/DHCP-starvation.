@@ -5,6 +5,8 @@ Fecha: Febrero 2025
 Entorno: PNELAB / EVE-NG
 Red: 20.24.116.0/24
 
+
+
 ATAQUE 1: DHCP STARVATION
 📌 OBJETIVO DEL SCRIPT
 Objetivo General:
@@ -27,51 +29,54 @@ Pool DHCP: 0/254 direcciones disponibles
 Víctima: IP 169.254.x.x (APIPA - Sin conectividad)
 
 Servidor DHCP: 100% de utilización
+
+
+
+
 🏗️ TOPOLOGÍA DE RED
 
 
 <img width="2048" height="1231" alt="image" src="https://github.com/user-attachments/assets/c835e483-f6ba-4639-93b3-cdff1f56968e" /> 
 
+
+
+
+
+
 Tabla de Direccionamiento IP:
-Dispositivo	    Hostname   	  Interfaz	 IP Address 	       Máscara  	Gateway	    VLAN 	      Rol
-Router-1       	R1-GATEWAY	  Gi0/0	     DHCP (NAT)	         -	           -        	1	      Internet Gateway
-Router-1       	R1-GATEWAY	  Gi0/1      20.24.116.1	       /24	          -       	1	      NAT Inside
-Router-2	      R2-DHCP	      Gi0/0	     20.24.116.4	       /24	     20.24.116.1	  1	      DHCP Server
-Kali	          Atacante	    eth0	     20.24.116.2	       /24	     20.24.116.1	  1       Atacante
-Windows	        Víctima	      eth0	     DHCP (20.24.116.x)	 /24      	20.24.116.1	  1       Víctima
-Switch	         SW            	-	       -	                 -             	-	        1   	  L2 Switching
+
+<img width="1642" height="445" alt="image" src="https://github.com/user-attachments/assets/4c569c4b-4c7d-444a-9957-f2ca19b1300a" />
+
 
 
 Configuración de VLANs:
-VLANID 	 Nombre	       Red             puertos           	Dispositivos
-1 	     DEFAULT	 20.24.116.0/24	     Gi0/0 - Gi0/3	    Todos los dispositivos
+
+<img width="1082" height="146" alt="image" src="https://github.com/user-attachments/assets/3d0d4438-8155-4631-a75f-d0e5636be361" />
+
+
+
+
 
 ⚙️ PARÁMETROS USADOS EN EL ATAQUE
 Configuración del Script:
 
-Parámetro	                      Valor	                                           Descripción
-Interfaz	                       eth0	                                      Interfaz de red de Kali
-Red objetivo                   	20.24.116.0/24	                            Rango de IPs a atacar
-Servidor DHCP                    20.24.116.4 	                               Router-2(Servidor legítimo)
-Gateway	                         20.24.116.1	                               Router-1 (Salida a Internet)
-Número de peticiones	             254	                                      Total de IPs en el pool
-Intervalo entre peticiones	       0.02s (20ms)                   	           Velocidad del ataque
-Tipo de paquete	DHCP               DHCP Discover	                                 Solicitud de IP
-MACs generadas                	   00:0c:29:xx:xx:xx                             	 OUI de VMware/PNELAB
-XID (Transaction ID)             	Random (1-1000000)	                             Identificador único
+<img width="1067" height="680" alt="image" src="https://github.com/user-attachments/assets/48d6826e-21a2-4aec-b1a5-8b6bebb792ea" />
+
+
+
 
 Pool DHCP Legítimo (Router-2):
 
-Parámetro	                       Valor
-Pool name	                  POOL_LEGITIMO_20241165
-Network	                    20.24.116.0 255.255.255.0
-Default-router             	20.24.116.1
-DNS-server	                 8.8.8.8, 1.1.1.1
-Domain-name	                 practica20241165.local
-Lease time	                 1 día
-Total addresses             	254
-Excluded addresses          	20.24.116.1-10 (Router-1, Kali, Windows, Router-2)
-Available addresses	          244 (inicial) → 0 (final)
+<img width="944" height="701" alt="image" src="https://github.com/user-attachments/assets/4fe52908-45f9-4c21-bbb0-2f7ae1a1617b" />
+
+
+
+
+
+
+
+
+
 
 Captura 1: Estado Inicial - Antes del Ataque
 <img width="874" height="442" alt="image" src="https://github.com/user-attachments/assets/99f9311e-6071-46c2-a3fb-c9913e71ea42" />
@@ -90,6 +95,11 @@ En la victima
 <img width="938" height="460" alt="image" src="https://github.com/user-attachments/assets/6710e8bc-95b9-4dc9-832f-387305e34ddc" />
 
 
+
+
+
+
+
 💻 REQUISITOS PARA UTILIZAR LA HERRAMIENTA
 # Sistema Operativo
 - Kali Linux 2024.x o superior
@@ -105,10 +115,25 @@ sudo apt update
 sudo apt install python3-scapy python3-pip -y
 sudo apt install tcpdump wireshark -y  # Opcional para debugging
 
+
+
+
+
+
+
+
+
+
 Requisitos de Hardware/Red:
 <img width="1062" height="546" alt="image" src="https://github.com/user-attachments/assets/ebaff53a-39da-4e78-9d20-b39f7c30cfd4" />
 
+
+
+
+
 Configuración Previa Necesaria:
+
+
 EN KALI LINUK:
 # 1. Configurar IP estática
 sudo ip addr add 20.24.116.2/24 dev eth0
@@ -134,7 +159,13 @@ netsh interface ip set address "eth0" dhcp
 netsh interface ip set dns "eth0" dhcp
 
 
+
+
+
+
 🛡️ MEDIDAS DE MITIGACIÓN
+
+
 1. PORT SECURITY (Capa 2 - Switch)
 
 Configuración en Switch Cisco:
@@ -149,10 +180,18 @@ interface GigabitEthernet0/2  ! Puerto de Kali
 show port-security
 show port-security interface GigabitEthernet0/2
 
+
+
+
 Efectividad: ❌ NO mitiga DHCP Starvation directamente
 Propósito: Previene suplantación de MAC, pero no el ataque masivo
 
+
+
+
+
 2. DHCP SNOOPING (Capa 2 - Switch)
+   
 Configuración en Switch Cisco:
 ! Activar DHCP Snooping global
 ip dhcp snooping
@@ -169,11 +208,20 @@ interface GigabitEthernet0/2  ! Puerto de Kali
 ! Verificar configuración
 show ip dhcp snooping
 show ip dhcp snooping binding
+
+
+
+
 Efectividad: ✅✅ ALTA (50-70%)
 Ventajas: Limita velocidad de peticiones DHCP
 Desventajas: Requiere switch administrable
 
+
+
+
+
 3. RATE LIMITING (Capa 2 - Switch)
+   
 Configuración en Switch Cisco:
 ! Limitar broadcast/multicast
 interface GigabitEthernet0/2
@@ -193,11 +241,16 @@ interface GigabitEthernet0/2
 ! Verificar
 show storm-control
 
+
+
+
+
 Efectividad: ✅✅ ALTA (60-80%)
 Propósito: Limita tráfico DHCP que es broadcast
 
 
 4. CONFIGURACIÓN DE POOL DHCP (Capa 3 - Router)
+   
 En Router-2 (Servidor DHCP):
 ! Limitar número máximo de leases por MAC
 ip dhcp pool POOL_LEGITIMO_20241165
@@ -211,12 +264,21 @@ ip dhcp pool POOL_LEGITIMO_20241165
 ! Verificar
 show ip dhcp server statistics
 
+
+
+
 Efectividad: ⚠️ BAJA (10-20%)
 Ventajas: Reduce ventana de ataque
 Desventajas: No previene, solo mitiga
 
+
+
+
+
+
 5. VLAN SEGMENTATION (Capa 2 - Switch)
 Configuración en Switch Cisco:
+
 ! Crear VLANs separadas
 vlan 10
  name CLIENTES_LEGITIMOS
@@ -240,13 +302,21 @@ interface GigabitEthernet0/3  ! Router DHCP
  switchport mode trunk
  switchport trunk allowed vlan 10,20,99
 
- Efectividad: ✅✅✅ MUY ALTA (80-90%)
+ 
+ 
+ 
+ 
+Efectividad: ✅✅✅ MUY ALTA (80-90%)
 Ventajas: Aísla completamente al atacante
 Desventajas: Requiere re-diseño de red
 
 
+
+
+
 6. AAA + 802.1X (Capa 2 - Switch)
 Configuración en Switch Cisco:
+
 ! Activar autenticación 802.1X
 aaa new-model
 aaa authentication dot1x default group radius
@@ -259,13 +329,21 @@ interface GigabitEthernet0/2
 ! Configurar servidor RADIUS
 radius-server host 20.24.116.100 key Practica2024
 
+
+
+
+
 Efectividad: ✅✅✅✅ MUY ALTA (95%+)
 Ventajas: Autenticación de dispositivos antes de asignar IP
 Desventajas: Complejo de implementar
 
 
 
+
+
+
 7. MONITOREO Y DETECCIÓN
+   
 Script de detección en Python:
 #!/usr/bin/env python3
 from scapy.all import *
@@ -294,6 +372,8 @@ def detectar_starvation():
 if __name__ == "__main__":
     detectar_starvation()
 
+
+
    
     
 Efectividad: ✅✅✅ ALTA (70-80%)
@@ -302,18 +382,20 @@ Desventajas: No previene, solo alerta
 
 
 
+
+
+
+
+
 8. MEJORES PRÁCTICAS - CHECKLIST DE SEGURIDAD
    
-#	                        Medida	                           Prioridad	                   Estado
-1	               DHCP Snooping con rate-limiting	           🔴 CRÍTICA                  ✅ Implementar
-2                Port Security (1 MAC por puerto)            🔴 CRÍTICA	                 ✅ Implementar
-3           	   Segmentación VLAN	                         🔴 CRÍTICA	                 ✅ Implementar
-4	               BPDU Guard en puertos de usuarios           🟡 ALTA	                   ✅ Implementar
-5	                Monitoreo de logs DHCP                     🟡 ALTA	                   ✅ Implementar
-6	                Lease time reducido	                       🟢 MEDIA	                   ⚠️ Opcional
-7	                802.1X autenticación	                     🟢 MEDIA             	     ⚠️ Recomendado
-8	                 IP Source Guard	                         🟢 MEDIA	                   ⚠️ Recomendado
-10.               CONFIGURACIÓN RECOMENDADA                     -                         SEGUR
+<img width="1393" height="808" alt="image" src="https://github.com/user-attachments/assets/69f287e6-6269-4e7f-a602-ae6eb59588fc" />
+
+
+
+
+
+
 
 
 
@@ -364,6 +446,18 @@ interface GigabitEthernet0/2
  shutdown  ! Activar solo cuando necesario
 
 
+
+
+
+
+
+
+
+
+
+
+
+
  📊 CONCLUSIÓN DEL ATAQUE
 
 <img width="1380" height="737" alt="image" src="https://github.com/user-attachments/assets/a943134f-5ab3-4640-998b-8a38b6717456" />
@@ -379,6 +473,14 @@ Lecciones Aprendidas:
 ✅ Las medidas de mitigación DEBEN implementarse en el switch, no en el router
 
 
+
+
+
+
+
+
+
+
 ⚠️ ADVERTENCIA LEGAL
 Este documento es únicamente con fines educativos.
 Realizado en entorno controlado de laboratorio (PNELAB/EVE-NG).
@@ -388,6 +490,11 @@ Realizado por: Estudiante de Seguridad Informática
 Matrícula: 20241165
 Fecha: Febrero 2025
 Entorno: PNELAB
+
+
+
+
+
 
 
 
