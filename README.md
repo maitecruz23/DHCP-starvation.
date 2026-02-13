@@ -8,6 +8,12 @@
 
 ---
 
+
+VIDEO DE YOUTUBE
+https://youtu.be/LVTOOLftkvU
+
+
+
 ## 📋 Información del Proyecto
 
 | Campo | Valor |
